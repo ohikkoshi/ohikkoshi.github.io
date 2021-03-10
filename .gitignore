@@ -14,7 +14,7 @@
 # Unity3D Generated File On Crash Reports
 sysinfo.txt
 # Unity3D Build Options
-*.unitypackage
+# *.unitypackage
 *.ipa
 *.apk
 *.symbols.zip
