@@ -1,8 +1,8 @@
 **CLI**<br>
-[Git](#git) | [FFmpeg](#ffmpeg)
+[Git](#git) | [.NET](#net) | [FFmpeg](#ffmpeg)
 
 **Package Manager**<br>
-[NodeJS](#nodejs) | [.NET](#net) | [Homebrew](#homebrew)
+[Homebrew](#homebrew) | [NodeJS](#nodejs)
 
 **Project Manager**<br>
 [Redmine](#redmine) | [GitLab](#gitlab)
@@ -140,36 +140,6 @@ git lfs ls-files
 ```
 
 
-# FFmpeg
-```
-ffmpeg -i <INPUT> -s 1280x720 <OUTPUT>
-ffmpeg -i <INPUT> -vf scale=1280:-1 -r 10 <OUTPUT>.gif
-ffmpeg -i <INPUT> -f image2 -ss 00:00:01 -vframes 1 -s 480x270 <OUTPUT>
-```
-
-
-# NodeJS
-### nodebrew
-```
-nodebrew ls-remote
-nodebrew install-binary <VERSION>
-nodebrew use <VERSION>
-nodebrew clean all
-```
-```
-ln -s $(which node) /usr/local/bin/node
-```
-### npm
-```
-npm install -g npm
-npm install -g yarn
-npm ls -g --depth=0
-```
-```
-npm install --legacy-peer-deps
-```
-
-
 # .NET
 ### MSBuild
 ```
@@ -194,6 +164,14 @@ dotnet add package <PACKAGE>
 ```
 
 
+# FFmpeg
+```
+ffmpeg -i <INPUT> -s 1280x720 <OUTPUT>
+ffmpeg -i <INPUT> -vf scale=1280:-1 -r 10 <OUTPUT>.gif
+ffmpeg -i <INPUT> -f image2 -ss 00:00:01 -vframes 1 -s 480x270 <OUTPUT>
+```
+
+
 # Homebrew
 ```
 brew doctor
@@ -204,6 +182,28 @@ brew deps --installed --tree --1
 ```
 brew bundle dump
 brew bundle install
+```
+
+
+# NodeJS
+### nodebrew
+```
+nodebrew ls-remote
+nodebrew install-binary <VERSION>
+nodebrew use <VERSION>
+nodebrew clean all
+```
+```
+ln -s $(which node) /usr/local/bin/node
+```
+### npm
+```
+npm install -g npm
+npm install -g yarn
+npm ls -g --depth=0
+```
+```
+npm install --legacy-peer-deps
 ```
 
 
@@ -332,7 +332,7 @@ ssh -i <KEY_PAIR>.pem <USERNAME>@<HOSTNAME> -p <PORT>
 ```
 ### Rectangle
 ```
-defaults write com.knollsoft.Rectangle almostMaximizeWidth -float 0.66
+defaults write com.knollsoft.Rectangle almostMaximizeWidth -float 0.75
 defaults write com.knollsoft.Rectangle almostMaximizeHeight -float 1.00
 ```
 
