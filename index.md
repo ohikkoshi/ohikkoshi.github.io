@@ -1,19 +1,8 @@
-**CLI**<br>
-- [Git](#git)
-- [.NET](#net)
-- [FFmpeg](#ffmpeg)
-
-**Package Manager**<br>
-- [Homebrew](#homebrew)
-- [NodeJS](#nodejs)
-
-**Project Manager**<br>
-- [Redmine](#redmine)
-- [GitLab](#gitlab)
-
-**OS**<br>
-- [macOS](#macos)
-- [Android](#android)
+# ToC
+- [Git](#git) | [.NET](#net) | [FFmpeg](#ffmpeg)
+- [Homebrew](#homebrew) | [NodeJS](#nodejs)
+- [Redmine](#redmine) | [GitLab](#gitlab)
+- [macOS](#macos) | [Android](#android)
 
 
 
