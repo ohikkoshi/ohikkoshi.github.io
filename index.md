@@ -1,8 +1,8 @@
 # ToC
-- [Git](#git) | [.NET](#net) | [FFmpeg](#ffmpeg)<br>
-- [Homebrew](#homebrew) | [NodeJS](#nodejs)<br>
-- [Redmine](#redmine) | [GitLab](#gitlab)<br>
-- [macOS](#macos) | [Android](#android)
+- [Git](#git) / [.NET](#net) / [FFmpeg](#ffmpeg)
+- [Homebrew](#homebrew) / [NodeJS](#nodejs)
+- [Redmine](#redmine) / [GitLab](#gitlab)
+- [macOS](#macos) / [Android](#android)
 
 
 
