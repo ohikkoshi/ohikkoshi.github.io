@@ -155,6 +155,9 @@ dotnet publish -c Release --sc true -r osx-x64 /p:PublishSingleFile=true
 dotnet tool search <PACKAGE>
 dotnet add package <PACKAGE>
 ```
+```
+dotnet run --roll-forward LatestMajor
+```
 
 
 # FFmpeg
