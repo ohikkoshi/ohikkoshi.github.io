@@ -1,5 +1,5 @@
 # ToC
-- [Git](#git) / [.NET](#net) / [FFmpeg](#ffmpeg)
+- [Git](#git) / [.NET](#net) / [FFmpeg](#ffmpeg) / [ImageMagick](#imagemagick)
 - [Redmine](#redmine) / [GitLab](#gitlab)
 - [macOS](#macos) / [Android](#android)
 
@@ -165,6 +165,12 @@ dotnet run --roll-forward LatestMajor
 ffmpeg -i <INPUT> -s 1280x720 <OUTPUT>
 ffmpeg -i <INPUT> -vf scale=1280:-1 -r 10 <OUTPUT>.gif
 ffmpeg -i <INPUT> -f image2 -ss 00:00:01 -vframes 1 -s 480x270 <OUTPUT>
+```
+
+
+# ImageMagick
+```
+convert <INPUT>.psd output%03d.png
 ```
 
 
