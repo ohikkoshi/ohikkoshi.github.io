@@ -171,6 +171,7 @@ ffmpeg -i <INPUT> -f image2 -ss 00:00:01 -vframes 1 -s 480x270 <OUTPUT>
 # ImageMagick
 ```
 convert <INPUT>.psd output%03d.png
+convert <INPUT> -alpha remove <OUTPUT>
 ```
 
 
