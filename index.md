@@ -120,6 +120,9 @@ git lfs version
 git lfs track
 git lfs ls-files
 ```
+```
+ln -s "$(which git-lfs)" "$(git --exec-path)/git-lfs"
+```
 ### .git/config
 ```
 [user]
