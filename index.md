@@ -57,6 +57,8 @@ git rebase -i HEAD~n
 ### merge
 ```
 git merge --squash <BRANCH>
+git merge -Xours <BRANCH>
+git merge -Xtheirs <BRANCH>
 ```
 ### pick
 ```
