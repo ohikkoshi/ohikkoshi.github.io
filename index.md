@@ -360,3 +360,10 @@ adb shell input keyevent <KEY_EVENT>
 ```
 adb shell am start -a android.intent.action.MAIN -n com.android.settings/.Settings
 ```
+### apktool
+```
+apktool d <NAME>.apk
+apktool b <NAME> <NAME>.apk
+~/Library/Android/sdk/build-tools/34.0.0/zipalign -v 4 <NAME>.apk align_<NAME>.apk
+~/Library/Android/sdk/build-tools/34.0.0/apksigner sign --ks ~/.android/debug.keystore align_<NAME>.apk
+```
