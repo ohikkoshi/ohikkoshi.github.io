@@ -1,5 +1,5 @@
 # ToC
-- [Git](#git) / [.NET](#net) / [FFmpeg](#ffmpeg) / [ImageMagick](#imagemagick)
+- [Git](#git) / [Docker](#docker) / [.NET](#net) / [FFmpeg](#ffmpeg) / [ImageMagick](#imagemagick)
 - [Redmine](#redmine) / [GitLab](#gitlab)
 - [macOS](#macos) / [Android](#android)
 
@@ -135,6 +135,15 @@ ln -s "$(which git-lfs)" "$(git --exec-path)/git-lfs"
   path = .gitconfig.global
 [includeIf "gitdir/i:~/git.hub/"]
   path = .gitconfig.github
+```
+
+
+# Docker
+### Image
+```
+docker images
+docker image rm <IMAGE>
+docker image prune -a
 ```
 
 
