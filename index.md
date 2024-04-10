@@ -1,12 +1,14 @@
-# ToC
-- [Git](#git) / [Docker](#docker) / [.NET](#net) / [FFmpeg](#ffmpeg) / [ImageMagick](#imagemagick)
+# Memo
+- [Git](#git) / [Docker](#docker)
+- [.NET](#net)
+- [FFmpeg](#ffmpeg) / [ImageMagick](#imagemagick)
 - [Redmine](#redmine) / [GitLab](#gitlab)
 - [macOS](#macos) / [Android](#android)
 
 
 
 
-# Git
+## Git
 ### ssh
 ```
 ssh -T git@github.com
@@ -138,7 +140,15 @@ ln -s "$(which git-lfs)" "$(git --exec-path)/git-lfs"
 ```
 
 
-# Docker
+## Docker
+### Setup
+```
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+sudo groupadd docker
+sudo usermod -aG docker $USER
+sudo apt install docker-compose-plugin
+```
 ### Image
 ```
 docker images
@@ -147,7 +157,7 @@ docker image prune -a
 ```
 
 
-# .NET
+## .NET
 ### MSBuild
 ```
 msbuild -t:Clean
@@ -159,7 +169,6 @@ nuget locals all -list
 nuget locals all -clear
 nuget restore
 ```
-
 ### dotnet
 ```
 dotnet build -c Release
@@ -174,7 +183,7 @@ dotnet run --roll-forward LatestMajor
 ```
 
 
-# FFmpeg
+## FFmpeg
 ```
 ffmpeg -i <INPUT> -s 1280x720 <OUTPUT>
 ffmpeg -i <INPUT> -vf scale=1280:-1 -r 10 <OUTPUT>.gif
@@ -182,14 +191,14 @@ ffmpeg -i <INPUT> -f image2 -ss 00:00:01 -vframes 1 -s 480x270 <OUTPUT>
 ```
 
 
-# ImageMagick
+## ImageMagick
 ```
 convert <INPUT>.psd output%03d.png
 convert <INPUT> -alpha remove <OUTPUT>
 ```
 
 
-# Redmine
+## Redmine
 ### service
 ```
 systemctl <start/stop/restart/status> httpd
@@ -250,7 +259,7 @@ logrotate -f /etc/logrotate.d/redmine
 ```
 
 
-# GitLab
+## GitLab
 ### service
 ```
 gitlab-ctl <start/stop/restart/status/reconfigure>
@@ -283,7 +292,7 @@ gitlab-rake gitlab:check
 ```
 
 
-# macOS
+## macOS
 ### Finder
 ```
 defaults write com.apple.finder AppleShowAllFiles TRUE
@@ -334,7 +343,7 @@ brew bundle install
 ```
 
 
-# Android
+## Android
 ### packages
 ```
 adb shell pm list packages -f -3
