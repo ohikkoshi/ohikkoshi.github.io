@@ -155,6 +155,20 @@ docker images
 docker image rm <IMAGE>
 docker image prune -a
 ```
+### SAN
+```
+subjectAltName = DNS:localhost
+authorityKeyIdentifier=keyid,issuer
+basicConstraints=CA:TRUE
+keyUsage=digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+```
+### OpenSSL
+```
+openssl genrsa -out server.key 2048
+openssl req -out server.csr -key server.key -new
+openssl x509 -req -days 3650 -signkey server.key -in server.csr -out server.crt -extfile SAN.txt
+openssl x509 -text -in server.crt -noout
+```
 
 
 ## .NET
