@@ -1,5 +1,5 @@
 # Memo
-- [Git](#git) / [Docker](#docker)
+- [Git](#git) / [Docker](#docker) / [nginx](#nginx)
 - [.NET](#net)
 - [FFmpeg](#ffmpeg) / [ImageMagick](#imagemagick)
 - [Redmine](#redmine) / [GitLab](#gitlab)
@@ -168,6 +168,18 @@ openssl genrsa -out server.key 2048
 openssl req -out server.csr -key server.key -new
 openssl x509 -req -days 3650 -signkey server.key -in server.csr -out server.crt -extfile SAN.txt
 openssl x509 -text -in server.crt -noout
+```
+
+
+## nginx
+### Let's Encrypt
+```
+sudo apt install python3-certbot-nginx
+```
+```
+sudo certbot certificates
+sudo certbot renew --dry-run
+sudo certbot renew --nginx
 ```
 
 
