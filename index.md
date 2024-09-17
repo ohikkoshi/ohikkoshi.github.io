@@ -1,6 +1,6 @@
 # Memo
 - [Git](#git) / [Docker](#docker) / [nginx](#nginx)
-- [.NET](#net)
+- [.NET](#net) / [Conda](#conda)
 - [FFmpeg](#ffmpeg) / [ImageMagick](#imagemagick)
 - [Redmine](#redmine) / [GitLab](#gitlab)
 - [macOS](#macos) / [Android](#android)
@@ -206,6 +206,17 @@ dotnet add package <PACKAGE>
 ```
 ```
 dotnet run --roll-forward LatestMajor
+```
+
+
+## Conda
+```
+conda create -n <ENV_NAME> python=x.x
+conda activate <ENV_NAME>
+```
+```
+conda deactivate
+conda remove -n <ENV_NAME> --all
 ```
 
 
