@@ -1,0 +1,12 @@
+remote_theme: "jekyll/minima@4de322363fca5927e6f4012cb94f6dad69ab5e6c"
+plugins:
+  - jekyll-remote-theme
+description: "ohikkoshi.github.io"
+timezone: Asia/Tokyo
+minima:
+  skin: classic
+  hide_site_feed_link: true
+  date_format: "%Y-%m-%d"
+exclude:
+  - AGENTS.md
+  - README.md
