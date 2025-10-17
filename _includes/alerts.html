@@ -1,0 +1,77 @@
+<style>
+  blockquote.markdown-alert {
+    font-style: normal;
+    font-size: inherit;
+    letter-spacing: normal;
+    color: inherit;
+    padding: 0.5em 1em;
+    margin: 1em 0;
+    border-left: 4px solid var(--alert-color);
+  }
+
+  blockquote.markdown-alert> :last-child {
+    margin-bottom: 0;
+  }
+
+  .markdown-alert-title {
+    margin: 0 0 0.5em;
+    font-weight: 600;
+    color: var(--alert-color);
+  }
+
+  .markdown-alert-note {
+    --alert-color: #0969da;
+  }
+
+  .markdown-alert-tip {
+    --alert-color: #1a7f37;
+  }
+
+  .markdown-alert-important {
+    --alert-color: #8250df;
+  }
+
+  .markdown-alert-warning {
+    --alert-color: #9a6700;
+  }
+
+  .markdown-alert-caution {
+    --alert-color: #cf222e;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var labels = {
+      NOTE: 'Note',
+      TIP: 'Tip',
+      IMPORTANT: 'Important',
+      WARNING: 'Warning',
+      CAUTION: 'Caution'
+    };
+
+    document.querySelectorAll('blockquote').forEach(function (bq) {
+      var p = bq.firstElementChild;
+      if (!p || p.tagName !== 'P') return;
+
+      var node = p.firstChild;
+      if (!node || node.nodeType !== 3) return;
+
+      var m = node.nodeValue.match(/^\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\][ \t]*\n?/i);
+      if (!m) return;
+
+      var type = m[1].toUpperCase();
+      node.nodeValue = node.nodeValue.slice(m[0].length);
+
+      // マーカーだけの段落は削除
+      if (!p.textContent.trim() && !p.children.length) p.remove();
+
+      var title = document.createElement('p');
+      title.className = 'markdown-alert-title';
+      title.textContent = labels[type];
+
+      bq.classList.add('markdown-alert', 'markdown-alert-' + type.toLowerCase());
+      bq.insertBefore(title, bq.firstChild);
+    });
+  });
+</script>
