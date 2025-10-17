@@ -1,0 +1,815 @@
+<script type="text/javascript">
+	var gk_isXlsx = false;
+	var gk_xlsxFileLookup = {};
+	var gk_fileData = {};
+	function filledCell(cell) {
+		return cell !== '' && cell != null;
+	}
+	function loadFileData(filename) {
+		if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+			try {
+				var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+				var firstSheetName = workbook.SheetNames[0];
+				var worksheet = workbook.Sheets[firstSheetName];
+
+				// Convert sheet to JSON to filter blank rows
+				var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+				// Filter out blank rows (rows where all cells are empty, null, or undefined)
+				var filteredData = jsonData.filter(row => row.some(filledCell));
+
+				// Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+				var headerRowIndex = filteredData.findIndex((row, index) =>
+					row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+				);
+				// Fallback
+				if (headerRowIndex === -1 || headerRowIndex > 25) {
+					headerRowIndex = 0;
+				}
+
+				// Convert filtered JSON back to CSV
+				var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+				csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+				return csv;
+			} catch (e) {
+				console.error(e);
+				return "";
+			}
+		}
+		return gk_fileData[filename] || "";
+	}
+</script>
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Markdown Preview</title>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+	<style>
+		* {
+			box-sizing: border-box;
+		}
+
+		body {
+			margin: 0;
+			padding: 0;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+			font-size: 14px;
+			line-height: 1.6;
+			background: #ffffff;
+			color: #24292f;
+			display: flex;
+			height: 100vh;
+		}
+
+		.container {
+			display: flex;
+			width: 100%;
+			height: 100%;
+		}
+
+		.editor-pane {
+			flex: 1;
+			display: flex;
+			flex-direction: column;
+			border-right: 1px solid #d0d7de;
+		}
+
+		.preview-pane {
+			flex: 1;
+			overflow-y: auto;
+			background: #ffffff;
+		}
+
+		.toolbar {
+			background: #f6f8fa;
+			padding: 8px 12px;
+			border-bottom: 1px solid #d0d7de;
+			display: flex;
+			gap: 8px;
+			align-items: center;
+		}
+
+		.toolbar button {
+			background: #2da44e;
+			color: #ffffff;
+			border: none;
+			padding: 6px 14px;
+			border-radius: 6px;
+			cursor: pointer;
+			font-size: 14px;
+			font-family: inherit;
+			font-weight: 500;
+		}
+
+		.toolbar button:hover {
+			background: #2c974b;
+		}
+
+		textarea {
+			flex: 1;
+			background: #ffffff;
+			color: #24292f;
+			border: none;
+			padding: 20px;
+			font-family: 'Consolas', 'Courier New', monospace;
+			font-size: 14px;
+			line-height: 1.6;
+			resize: none;
+			outline: none;
+		}
+
+		.preview-content {
+			padding: 32px;
+			max-width: 1012px;
+		}
+
+		/* GitHub Markdown Styles */
+		.preview-content h1,
+		.preview-content h2,
+		.preview-content h3,
+		.preview-content h4,
+		.preview-content h5,
+		.preview-content h6 {
+			font-weight: 600;
+			line-height: 1.25;
+			margin-top: 24px;
+			margin-bottom: 16px;
+		}
+
+		.preview-content h1 {
+			font-size: 2em;
+			border-bottom: 1px solid #d8dee4;
+			padding-bottom: 0.3em;
+			margin-top: 0;
+		}
+
+		.preview-content h2 {
+			font-size: 1.5em;
+			border-bottom: 1px solid #d8dee4;
+			padding-bottom: 0.3em;
+		}
+
+		.preview-content h3 {
+			font-size: 1.25em;
+		}
+
+		.preview-content h4 {
+			font-size: 1em;
+		}
+
+		.preview-content h5 {
+			font-size: 0.875em;
+		}
+
+		.preview-content h6 {
+			font-size: 0.85em;
+			color: #57606a;
+		}
+
+		.preview-content p {
+			margin-top: 0;
+			margin-bottom: 16px;
+		}
+
+		.preview-content code {
+			background: rgba(175, 184, 193, 0.2);
+			padding: 0.2em 0.4em;
+			border-radius: 6px;
+			font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+			font-size: 85%;
+			color: #24292f;
+		}
+
+		.preview-content pre {
+			background: #f6f8fa;
+			padding: 16px;
+			border-radius: 6px;
+			overflow-x: auto;
+			margin: 16px 0;
+			border: 1px solid #d0d7de;
+			line-height: 1.45;
+		}
+
+		.preview-content pre code {
+			background: none;
+			padding: 0;
+			border-radius: 0;
+			font-size: 100%;
+			color: #24292f;
+			display: block;
+		}
+
+		.preview-content pre code.hljs {
+			background: transparent;
+			padding: 0;
+		}
+
+		.preview-content blockquote {
+			margin: 0 0 16px 0;
+			padding: 0 1em;
+			border-left: 0.25em solid #d0d7de;
+			color: #57606a;
+		}
+
+		.preview-content ul,
+		.preview-content ol {
+			padding-left: 2em;
+			margin-top: 0;
+			margin-bottom: 16px;
+		}
+
+		.preview-content li {
+			margin-top: 0.25em;
+			position: relative;
+		}
+
+		.preview-content li+li {
+			margin-top: 0.25em;
+		}
+
+		.preview-content a {
+			color: #0969da;
+			text-decoration: none;
+		}
+
+		.preview-content a:hover {
+			text-decoration: underline;
+		}
+
+		.preview-content img {
+			max-width: 100%;
+			height: auto;
+			background-color: #ffffff;
+		}
+
+		.preview-content table {
+			border-collapse: collapse;
+			border-spacing: 0;
+			width: auto;
+			margin: 16px 0;
+		}
+
+		.preview-content table th,
+		.preview-content table td {
+			border: 1px solid #d0d7de;
+			padding: 6px 13px;
+		}
+
+		.preview-content table th {
+			background: #f6f8fa;
+			font-weight: 600;
+		}
+
+		.preview-content table tr {
+			background: #ffffff;
+			border-top: 1px solid #d0d7de;
+		}
+
+		.preview-content table tr:nth-child(2n) {
+			background: #f6f8fa;
+		}
+
+		.preview-content hr {
+			border: none;
+			border-bottom: 1px solid #d8dee4;
+			height: 0.25em;
+			background: transparent;
+			margin: 24px 0;
+		}
+
+		.preview-content strong {
+			font-weight: 600;
+		}
+
+		.preview-content em {
+			font-style: italic;
+		}
+
+		.preview-content del {
+			text-decoration: line-through;
+		}
+
+		.preview-content input[type="checkbox"] {
+			appearance: none;
+			width: 16px;
+			height: 16px;
+			margin: 0 0 0 0;
+			border: 1px solid #d0d7de;
+			border-radius: 4px;
+			background-color: #ffffff;
+			position: relative;
+			top: 2px;
+			cursor: pointer;
+		}
+
+		.preview-content input[type="checkbox"]:checked {
+			background-color: #0969da;
+			border-color: #0969da;
+			background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='%23ffffff' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3E%3C/svg%3E");
+			background-size: 16px;
+			background-position: center;
+			background-repeat: no-repeat;
+		}
+
+		.preview-content li input[type="checkbox"] {
+			position: absolute;
+			left: -24px;
+			top: 4px;
+		}
+
+		/* GitHub Alerts */
+		.preview-content .markdown-alert {
+			padding: 8px 16px;
+			margin-bottom: 16px;
+			border-left: 4px solid;
+			border-radius: 0;
+		}
+
+		.preview-content .markdown-alert>*:last-child {
+			margin-bottom: 0 !important;
+		}
+
+		.preview-content .markdown-alert-note {
+			border-color: #0969da;
+		}
+
+		.preview-content .markdown-alert-tip {
+			border-color: #1a7f37;
+		}
+
+		.preview-content .markdown-alert-important {
+			border-color: #8250df;
+		}
+
+		.preview-content .markdown-alert-warning {
+			border-color: #9a6700;
+		}
+
+		.preview-content .markdown-alert-caution {
+			border-color: #d1242f;
+		}
+
+		.preview-content .markdown-alert-title {
+			display: flex;
+			align-items: center;
+			font-weight: 500;
+			font-size: 14px;
+			margin-bottom: 8px;
+			line-height: 1;
+		}
+
+		.preview-content .markdown-alert-note .markdown-alert-title {
+			color: #0969da;
+		}
+
+		.preview-content .markdown-alert-tip .markdown-alert-title {
+			color: #1a7f37;
+		}
+
+		.preview-content .markdown-alert-important .markdown-alert-title {
+			color: #8250df;
+		}
+
+		.preview-content .markdown-alert-warning .markdown-alert-title {
+			color: #9a6700;
+		}
+
+		.preview-content .markdown-alert-caution .markdown-alert-title {
+			color: #d1242f;
+		}
+
+		.preview-content .markdown-alert-title .alert-icon {
+			margin-right: 8px;
+			display: inline-block;
+			width: 16px;
+			height: 16px;
+		}
+	</style>
+</head>
+
+<body>
+	<div class="container">
+		<div class="editor-pane">
+			<div class="toolbar">
+				<button onclick="updatePreview()">プレビュー更新</button>
+				<button onclick="exportHTML()">HTML出力</button>
+			</div>
+			<textarea id="markdown-input" placeholder="ここにMarkdownを入力してください...">
+# タイトル
+
+これはサンプルです。
+
+## 機能
+
+- **太字**や*斜体*のテキスト
+- `インラインコード`
+- リンク: [GitHub](https://github.com)
+
+### チェックボックス
+
+- [x] チェックボックス
+- [ ] 未チェックボックス
+
+### GitHubアラート
+
+> [!NOTE]
+> ユーザーがコンテンツを読み飛ばしている場合でも知っておくべき有用な情報。
+
+> [!TIP]
+> 物事をより良く、またはより簡単に行うための役立つアドバイス。
+
+> [!IMPORTANT]
+> ユーザーが目標を達成するために知っておく必要がある重要な情報。
+
+> [!WARNING]
+> 問題を回避するために、ユーザーの即座の注意が必要な緊急情報。
+
+> [!CAUTION]
+> 特定のアクションのリスクまたはマイナスの結果についての警告。
+
+### コードブロック
+
+```javascript
+function hello() {
+    console.log("Hello, World!");
+}
+```
+
+```python
+def greet(name):
+    return f"Hello, {name}!"
+
+print(greet("World"))
+```
+
+```ruby
+require 'redcarpet'
+markdown = Redcarpet.new("Hello World!")
+puts markdown.to_html
+```
+
+### リスト
+
+1. 番号付きリスト
+2. 2つ目の項目
+3. 3つ目の項目
+
+- 箇条書き
+  - もう一つの項目
+
+### 引用
+
+> これは引用です。
+> GitHubのプレビューと同じスタイルになっています。
+
+### テーブル
+
+| 左寄せ | 中央 | 右寄せ |
+| :------- | :-------: | -------: |
+| 1   | 2   | 3 |
+| A   | B   | C |
+
+### ライン
+
+---
+
+</textarea>
+		</div>
+		<div class="preview-pane">
+			<div class="preview-content" id="preview"></div>
+		</div>
+	</div>
+
+	<script>
+		marked.setOptions({
+			breaks: true,
+			gfm: true,
+			highlight: function (code, lang) {
+				if (lang && hljs.getLanguage(lang)) {
+					try {
+						return hljs.highlight(code, { language: lang }).value;
+					} catch (err) { }
+				}
+				return code;
+			}
+		});
+
+		// GitHubアラート記法を処理する関数
+		function parseGitHubAlerts(markdown) {
+			const alertTypes = {
+				'NOTE': {
+					icon: '<svg class="alert-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path></svg>',
+					class: 'note',
+					label: 'Note'
+				},
+				'TIP': {
+					icon: '<svg class="alert-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1.5c-2.363 0-4 1.69-4 3.75 0 .984.424 1.625.984 2.304l.214.253c.223.264.47.556.673.848.284.411.537.896.621 1.49a.75.75 0 0 1-1.484.211c-.04-.282-.163-.547-.37-.847a8.456 8.456 0 0 0-.542-.68c-.084-.1-.173-.205-.268-.32C3.201 7.75 2.5 6.766 2.5 5.25 2.5 2.31 4.863 0 8 0s5.5 2.31 5.5 5.25c0 1.516-.701 2.5-1.328 3.259-.095.115-.184.22-.268.319-.207.245-.383.453-.541.681-.208.3-.33.565-.37.847a.751.751 0 0 1-1.485-.212c.084-.593.337-1.078.621-1.489.203-.292.45-.584.673-.848.075-.088.147-.173.213-.253.561-.679.985-1.32.985-2.304 0-2.06-1.637-3.75-4-3.75ZM5.75 12h4.5a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1 0-1.5ZM6 15.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1-.75-.75Z"></path></svg>',
+					class: 'tip',
+					label: 'Tip'
+				},
+				'IMPORTANT': {
+					icon: '<svg class="alert-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M0 1.75C0 .784.784 0 1.75 0h12.5C15.216 0 16 .784 16 1.75v9.5A1.75 1.75 0 0 1 14.25 13H8.06l-2.573 2.573A1.458 1.458 0 0 1 3 14.543V13H1.75A1.75 1.75 0 0 1 0 11.25Zm1.75-.25a.25.25 0 0 0-.25.25v9.5c0 .138.112.25.25.25h2a.75.75 0 0 1 .75.75v2.19l2.72-2.72a.749.749 0 0 1 .53-.22h6.5a.25.25 0 0 0 .25-.25v-9.5a.25.25 0 0 0-.25-.25Zm7 2.25v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 9a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"></path></svg>',
+					class: 'important',
+					label: 'Important'
+				},
+				'WARNING': {
+					icon: '<svg class="alert-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575Zm1.763.707a.25.25 0 0 0-.44 0L1.698 13.132a.25.25 0 0 0 .22.368h12.164a.25.25 0 0 0 .22-.368Zm.53 3.996v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"></path></svg>',
+					class: 'warning',
+					label: 'Warning'
+				},
+				'CAUTION': {
+					icon: '<svg class="alert-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path></svg>',
+					class: 'caution',
+					label: 'Caution'
+				}
+			};
+
+			// アラート記法を検出して置き換え
+			const alertPattern = /^> \[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\n((?:> .*\n?)*)/gm;
+
+			return markdown.replace(alertPattern, (match, type, content) => {
+				const alertInfo = alertTypes[type];
+				// ">" を削除してコンテンツを取得
+				const cleanContent = content.replace(/^> ?/gm, '').trim();
+
+				return `<div class="markdown-alert markdown-alert-${alertInfo.class}">
+<div class="markdown-alert-title">${alertInfo.icon}${alertInfo.label}</div>
+${marked.parse(cleanContent)}
+</div>\n\n`;
+			});
+		}
+
+		function updatePreview() {
+			const markdown = document.getElementById('markdown-input').value;
+			const preview = document.getElementById('preview');
+
+			// アラート記法を処理してからMarkdownをパース
+			const processedMarkdown = parseGitHubAlerts(markdown);
+			preview.innerHTML = marked.parse(processedMarkdown);
+
+			// シンタックスハイライトを適用
+			preview.querySelectorAll('pre code').forEach((block) => {
+				hljs.highlightElement(block);
+			});
+		}
+
+		function exportHTML() {
+			const markdown = document.getElementById('markdown-input').value;
+			const html = generateFullHTML(markdown);
+
+			// 最初の見出し(h1)を取得してファイル名にする
+			let filename = 'preview.html';
+			const h1Match = markdown.match(/^#\s+(.+)$/m);
+			if (h1Match) {
+				// ファイル名として使えない文字を置き換え
+				filename = h1Match[1]
+					.replace(/[<>:"/\\|?*\x00-\x1f]/g, '-')
+					.replace(/\s+/g, '-')
+					.trim() + '.html';
+			}
+
+			const blob = new Blob([html], { type: 'text/html' });
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement('a');
+			a.href = url;
+			a.download = filename;
+			a.click();
+			URL.revokeObjectURL(url);
+		}
+
+		function generateFullHTML(markdown) {
+			const processedMarkdown = parseGitHubAlerts(markdown);
+			const content = marked.parse(processedMarkdown);
+
+			// タイトルを取得
+			let title = 'Markdown Preview';
+			const h1Match = markdown.match(/^#\s+(.+)$/m);
+			if (h1Match) {
+				title = h1Match[1];
+			}
+
+			return `<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title}</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"><\/script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 32px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+            background: #ffffff;
+            color: #24292f;
+        }
+        .content {
+            max-width: 1012px;
+            margin: 0 auto;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: 600;
+            line-height: 1.25;
+            margin-top: 24px;
+            margin-bottom: 16px;
+        }
+        h1 {
+            font-size: 2em;
+            border-bottom: 1px solid #d8dee4;
+            padding-bottom: 0.3em;
+            margin-top: 0;
+        }
+        h2 {
+            font-size: 1.5em;
+            border-bottom: 1px solid #d8dee4;
+            padding-bottom: 0.3em;
+        }
+        h3 { font-size: 1.25em; }
+        h4 { font-size: 1em; }
+        h5 { font-size: 0.875em; }
+        h6 { font-size: 0.85em; color: #57606a; }
+        p { margin-top: 0; margin-bottom: 16px; }
+        code {
+            background: rgba(175,184,193,0.2);
+            padding: 0.2em 0.4em;
+            border-radius: 6px;
+            font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+            font-size: 85%;
+            color: #24292f;
+        }
+        pre {
+            background: #f6f8fa;
+            padding: 16px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 16px 0;
+            border: 1px solid #d0d7de;
+            line-height: 1.45;
+        }
+        pre code { 
+            background: none; 
+            padding: 0; 
+            border-radius: 0;
+            font-size: 100%;
+            color: #24292f;
+            display: block;
+        }
+        pre code.hljs {
+            background: transparent;
+            padding: 0;
+        }
+        blockquote {
+            margin: 0 0 16px 0;
+            padding: 0 1em;
+            border-left: 0.25em solid #d0d7de;
+            color: #57606a;
+        }
+        ul, ol { padding-left: 2em; margin-top: 0; margin-bottom: 16px; }
+        li { margin-top: 0.25em; position: relative; }
+        li + li { margin-top: 0.25em; }
+        a { color: #0969da; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        img { max-width: 100%; height: auto; background-color: #ffffff; }
+        table {
+            border-collapse: collapse;
+            border-spacing: 0;
+            width: auto;
+            margin: 16px 0;
+        }
+        table th, table td {
+            border: 1px solid #d0d7de;
+            padding: 6px 13px;
+        }
+        table th {
+            background: #f6f8fa;
+            font-weight: 600;
+        }
+        table tr {
+            background: #ffffff;
+            border-top: 1px solid #d0d7de;
+        }
+        table tr:nth-child(2n) {
+            background: #f6f8fa;
+        }
+        hr {
+            border: none;
+            border-bottom: 1px solid #d8dee4;
+            height: 0.25em;
+            background: transparent;
+            margin: 24px 0;
+        }
+        strong { font-weight: 600; }
+        em { font-style: italic; }
+        del { text-decoration: line-through; }
+        input[type="checkbox"] {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            margin: 0 0 0 0;
+            border: 1px solid #d0d7de;
+            border-radius: 4px;
+            background-color: #ffffff;
+            position: relative;
+            top: 2px;
+            cursor: pointer;
+        }
+        input[type="checkbox"]:checked {
+            background-color: #0969da;
+            border-color: #0969da;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='%23ffffff' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3E%3C/svg%3E");
+            background-size: 12px;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        li input[type="checkbox"] {
+            position: absolute;
+            left: -24px;
+            top: 4px;
+        }
+        .markdown-alert {
+            padding: 8px 16px;
+            margin-bottom: 16px;
+            border-left: 4px solid;
+            border-radius: 0;
+        }
+        .markdown-alert > *:last-child {
+            margin-bottom: 0 !important;
+        }
+        .markdown-alert-note {
+            border-color: #0969da;
+        }
+        .markdown-alert-tip {
+            border-color: #1a7f37;
+        }
+        .markdown-alert-important {
+            border-color: #8250df;
+        }
+        .markdown-alert-warning {
+            border-color: #9a6700;
+        }
+        .markdown-alert-caution {
+            border-color: #d1242f;
+        }
+        .markdown-alert-title {
+            display: flex;
+            align-items: center;
+            font-weight: 500;
+            font-size: 14px;
+            margin-bottom: 8px;
+            line-height: 1;
+        }
+        .markdown-alert-note .markdown-alert-title {
+            color: #0969da;
+        }
+        .markdown-alert-tip .markdown-alert-title {
+            color: #1a7f37;
+        }
+        .markdown-alert-important .markdown-alert-title {
+            color: #8250df;
+        }
+        .markdown-alert-warning .markdown-alert-title {
+            color: #9a6700;
+        }
+        .markdown-alert-caution .markdown-alert-title {
+            color: #d1242f;
+        }
+        .markdown-alert-title .alert-icon {
+            margin-right: 8px;
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="content">
+${content}
+    </div>
+    <script>
+        // ページ読み込み後にシンタックスハイライトを適用
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightElement(block);
+            });
+        });
+    <\/script>
+</body>
+</html>`;
+		}
+
+		// 初期プレビュー表示
+		updatePreview();
+
+		// リアルタイムプレビュー
+		document.getElementById('markdown-input').addEventListener('input', updatePreview);
+	</script>
+</body>
+
+</html>

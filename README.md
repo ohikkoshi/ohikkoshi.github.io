@@ -1,9 +1,7 @@
----
-layout: default
----
+## [ohikkoshi.github.io](https://ohikkoshi.github.io/)
 
-## Self Cheat Sheets
+### Self Cheat Sheets
 - [**git-commands**](https://ohikkoshi.github.io/cheat-sheet/git-commands)
 
-## Self Utilities
+### Self Utilities
 - [**markdown-preview**](https://ohikkoshi.github.io/utilities/markdown-preview)
