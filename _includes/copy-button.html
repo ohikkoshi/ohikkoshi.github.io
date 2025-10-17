@@ -1,0 +1,87 @@
+<style>
+  .copy-wrapper {
+    position: relative;
+  }
+
+  .copy-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 1px solid #d1d9e0;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #59636e;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s, background 0.15s;
+  }
+
+  .copy-wrapper:hover .copy-btn,
+  .copy-btn:focus-visible,
+  .copy-btn.copied {
+    opacity: 1;
+  }
+
+  .copy-btn:hover {
+    background: #f6f8fa;
+  }
+
+  .copy-btn.copied {
+    color: #1a7f37;
+    border-color: #1a7f37;
+  }
+
+  .copy-btn svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  @media (hover: none) {
+    .copy-btn {
+      opacity: 1;
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    var copyIcon = '<svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+    var checkIcon = '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>';
+
+    document.querySelectorAll('pre').forEach((pre) => {
+      var wrapper = pre.parentElement;
+      wrapper.classList.add('copy-wrapper');
+
+      var btn = document.createElement('button');
+      btn.className = 'copy-btn';
+      btn.type = 'button';
+      btn.setAttribute('aria-label', 'Copy code');
+      btn.innerHTML = copyIcon;
+
+      btn.addEventListener('click', () => {
+        var code = pre.querySelector('code') || pre;
+        navigator.clipboard.writeText(code.innerText).then(() => {
+          btn.innerHTML = checkIcon;
+          btn.classList.add('copied');
+          setTimeout(() => {
+            btn.innerHTML = copyIcon;
+            btn.classList.remove('copied');
+          }, 2000);
+        });
+      });
+
+      wrapper.appendChild(btn);
+    });
+  });
+</script>
